@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Layanan URL Shortener cepat dan mudah digunakan.">
+    <title>URL Shortener - Perpendek URL Anda</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body { background-color: #121212; color: #ffffff; }
+        .navbar { background-color: #1e1e1e; }
+        .container { max-width: 500px; }
+        .card { background-color: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; }
+        input { background-color: #222; color: #ffffff; border: 1px solid #444; }
+        .btn-primary { background-color: #1e90ff; border: none; }
+        .btn-primary:hover { background-color: #007bff; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fa-solid fa-link"></i> URL Shortener</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <a href="/docs" class="btn btn-outline-light"><i class="fa-solid fa-book"></i> Dokumentasi</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5 text-center">
+        <h1><i class="fa-solid fa-link"></i> URL Shortener</h1>
+        <p class="text-muted">Perpendek URL panjang Anda dengan mudah</p>
+
+        <div class="card">
+            <form id="shortenForm">
+                <label for="longUrl" class="form-label"><i class="fa-solid fa-globe"></i> Masukkan URL Panjang</label>
+                <input type="url" id="longUrl" class="form-control" placeholder="https://example.com" required>
+                <button type="submit" class="btn btn-primary mt-3 w-100"><i class="fa-solid fa-compress"></i> Perpendek</button>
+            </form>
+            <p id="shortenedUrl" class="mt-3 text-center"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('shortenForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const longUrl = document.getElementById('longUrl').value;
+
+            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                const response = await fetch('/api/shorten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ longUrl })
+                });
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'URL berhasil dipendekkan.',
+                    confirmButtonText: 'Salin & Buka',
+                    showCancelButton: true,
+                    cancelButtonText: 'Tutup',
+                    preConfirm: () => {
+                        navigator.clipboard.writeText(data.shortUrl);
+                        window.open(data.shortUrl, '_blank');
+                    }
+                });
+
+                document.getElementById('shortenedUrl').innerHTML = `<a href="${data.shortUrl}" target="_blank" class="text-info">${data.shortUrl}</a>`;
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan saat memproses.' });
+            }
+        });
+    </script>
+
+</body>
+</html>
